@@ -1,21 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+
     <modelVersion>4.0.0</modelVersion>
+    <groupId>dev.barahow</groupId>
+    <artifactId>commerce-saga</artifactId>
+    <packaging>pom</packaging>
+    <name>commerce-saga</name>
+    <version>${revision}}</version>
+    <description>Spring Boot project using Kafka with Saga pattern</description>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>dev.barahow</groupId>
-    <artifactId>commerce-saga</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>commerce-saga</name>
-    <description>Spring Boot project using Kafka with Saga pattern</description>
+    <modules>
+
+        <module>core</module>
+
+    </modules>
+
+
     <properties>
-        <java.version>17</java.version>
+        <revision>1.0.0</revision>
+        <java.version>23</java.version>
     </properties>
+
+
+
     <dependencies>
         <!-- Spring Boot Starter Web for creating REST APIs -->
         <dependency>
@@ -54,6 +69,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.29</version>
         </dependency>
 
         <!-- Spring Boot Starter Security for handling JWT and authentication -->
@@ -77,10 +93,16 @@
         </dependency>
 
         <!-- JJWT for working with JSON Web Tokens (JWT) -->
+        <!-- https://mvnrepository.com/artifact/com.auth0/java-jwt -->
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.11.5</version>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>4.4.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- Spring Boot DevTools for faster development -->
@@ -103,14 +125,9 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.9</version>
         </dependency>
-
-        <!-- Spring Boot Starter Docker support for integrating with Docker -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-docker</artifactId>
-        </dependency>
     </dependencies>
 
+    <!-- Build section with the spring-boot plugin -->
     <build>
         <plugins>
             <plugin>

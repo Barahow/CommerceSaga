@@ -4,6 +4,11 @@
 # Log file
 *.log
 
+#Ignore Docker Compose override file (used for local configurations)
+docker-compose.override.yml
+
+# Ignore environment files (store sensitive credentials separately)
+.env
 # BlueJ files
 *.ctxt
 

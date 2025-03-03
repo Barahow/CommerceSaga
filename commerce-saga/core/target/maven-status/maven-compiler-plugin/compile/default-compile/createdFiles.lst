@@ -1,0 +1,5 @@
+dev\barahow\core\dto\Shipment.class
+dev\barahow\core\dto\Product.class
+dev\barahow\core\types\OrderStatus.class
+dev\barahow\core\dto\Payment.class
+dev\barahow\core\dto\Order.class
