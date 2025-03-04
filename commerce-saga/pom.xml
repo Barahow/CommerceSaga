@@ -8,7 +8,7 @@
     <artifactId>commerce-saga</artifactId>
     <packaging>pom</packaging>
     <name>commerce-saga</name>
-    <version>${revision}}</version>
+    <version>${revision}</version>
     <description>Spring Boot project using Kafka with Saga pattern</description>
 
     <parent>
@@ -17,9 +17,12 @@
         <version>3.4.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
+
     <modules>
 
         <module>core</module>
+        <module>authentication-microservice</module>
 
     </modules>
 
@@ -31,109 +34,23 @@
 
 
 
-    <dependencies>
-        <!-- Spring Boot Starter Web for creating REST APIs -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
 
-        <!-- Spring Boot Starter Test for unit and integration testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
 
-        <!-- Lombok to reduce boilerplate code (Getters, Setters, etc.) -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
-            <scope>provided</scope>
-        </dependency>
 
-        <!-- Spring Kafka for Kafka integration -->
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>
-
-        <!-- Spring Boot Starter Data JPA for interacting with databases -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
-        <!-- MySQL Connector for MySQL integration -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.29</version>
-        </dependency>
-
-        <!-- Spring Boot Starter Security for handling JWT and authentication -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <!-- Spring Boot Starter Actuator for monitoring and managing the application -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!-- Testcontainers for lightweight integration testing with Docker containers -->
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <version>1.17.6</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- JJWT for working with JSON Web Tokens (JWT) -->
-        <!-- https://mvnrepository.com/artifact/com.auth0/java-jwt -->
-        <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>4.4.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
-        <!-- Spring Boot DevTools for faster development -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- SLF4J for logging support -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.0</version>
-        </dependency>
-
-        <!-- Logback for logging implementation -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.9</version>
-        </dependency>
-    </dependencies>
-
-    <!-- Build section with the spring-boot plugin -->
-    <build>
-        <plugins>
-            <plugin>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>3.2.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
