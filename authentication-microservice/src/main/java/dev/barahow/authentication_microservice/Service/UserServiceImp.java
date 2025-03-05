@@ -67,10 +67,9 @@ public class UserServiceImp implements UserService {
             throw new EntityNotFoundException("user with email " + email + "not found");
         }
 
-        // manually assign the role by using the enum Value
-        Role role = Role.CUSTOMER;
 
-        userEntity.setRole(role);
+
+        userEntity.setRole(Role.CUSTOMER);
 
 
         userRepository.save(userEntity);
@@ -93,12 +92,9 @@ public class UserServiceImp implements UserService {
 
 
 
-        Role userRole = userRepository.findByRole(Role.CUSTOMER).orElseThrow(() -> new RuntimeException("Default user role not found")).getRole();
 
 
-
-
-            user.setRole(userRole);
+            user.setRole(Role.CUSTOMER);
             user.setLocked(false);
 
 
