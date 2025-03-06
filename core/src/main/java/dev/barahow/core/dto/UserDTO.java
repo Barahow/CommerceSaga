@@ -36,13 +36,13 @@ public class UserDTO {
     private boolean enabled;
 
 
-    private boolean locked;
+    private LockInfo locked;
 
     public UserDTO() {
     }
 
 
-    public UserDTO(UUID id, String email, String passwordHash, String firstName, String lastName, String address, LocalDateTime createdAt, LocalDateTime updatedAt, Role role, boolean enabled, boolean locked) {
+    public UserDTO(UUID id, String email, String passwordHash, String firstName, String lastName, String address, LocalDateTime createdAt, LocalDateTime updatedAt, Role role, boolean enabled, LockInfo locked) {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -136,11 +136,11 @@ public class UserDTO {
         this.enabled = enabled;
     }
 
-    public boolean isLocked() {
+    public LockInfo isLocked() {
         return locked;
     }
 
-    public void setLocked(boolean locked) {
+    public void setLocked(LockInfo locked) {
         this.locked = locked;
     }
 
@@ -156,7 +156,7 @@ public class UserDTO {
         private LocalDateTime updatedAt;
         private Role role;
         private boolean enabled;
-        private boolean locked;
+        private LockInfo locked;
 
         public Builder id(UUID id) {
             this.id = id;
@@ -208,7 +208,7 @@ public class UserDTO {
             return this;
         }
 
-        public Builder locked(boolean locked) {
+        public Builder locked(LockInfo locked) {
             this.locked = locked;
             return this;
         }

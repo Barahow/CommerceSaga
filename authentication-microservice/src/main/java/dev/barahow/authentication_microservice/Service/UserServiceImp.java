@@ -3,7 +3,9 @@ package dev.barahow.authentication_microservice.Service;
 import dev.barahow.authentication_microservice.dao.UserEntity;
 import dev.barahow.authentication_microservice.mapper.UserMapper;
 import dev.barahow.authentication_microservice.repository.UserRepository;
+import dev.barahow.core.dto.LockInfo;
 import dev.barahow.core.dto.UserDTO;
+import dev.barahow.core.exceptions.UserNotFoundException;
 import dev.barahow.core.types.Role;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -38,7 +41,8 @@ public class UserServiceImp implements UserService {
 
         userDTO.setPasswordHash(passwordEncoder.encode(userDTO.getPasswordHash()));
 
-        userDTO.setLocked(false);
+        LockInfo lockInfo = new LockInfo(false,null);
+        userDTO.setLocked(lockInfo);
 
         // map DTO to Entity
       UserEntity userEntity = userMapper.toEntity(userDTO);
@@ -95,7 +99,8 @@ public class UserServiceImp implements UserService {
 
 
             user.setRole(Role.CUSTOMER);
-            user.setLocked(false);
+        LockInfo lockInfo= new LockInfo(false,null);
+            user.setLocked(lockInfo);
 
 
             UserEntity userEntity= userMapper.toEntity(user);
@@ -119,7 +124,7 @@ log.info("Created a new user {}",userEntity);
         UserEntity userEntity = userRepository.findByEmailIgnoreCase(email);
 
         if(userEntity== null){
-            throw new EntityNotFoundException("no User found with that email " +  email);
+            throw new UserNotFoundException("no User found with that email " +  email);
         }
 
         return userMapper.toDTO(userEntity);

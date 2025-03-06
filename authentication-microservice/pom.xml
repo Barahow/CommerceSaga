@@ -49,6 +49,11 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
 		<!-- JJWT for working with JSON Web Tokens (JWT) -->
 		<dependency>
 			<groupId>com.auth0</groupId>

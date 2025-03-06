@@ -24,7 +24,7 @@ public class UserMapperImp  implements UserMapper {
                 .updatedAt(userEntity.getUpdatedAt())
                 .role(userEntity.getRole())
                 .enabled(userEntity.isEnabled())
-                .locked(userEntity.isLocked())
+                .locked(userEntity.getLocked())
                 .build();
     }
 

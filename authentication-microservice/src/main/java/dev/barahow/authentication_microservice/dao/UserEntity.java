@@ -1,5 +1,6 @@
 package dev.barahow.authentication_microservice.dao;
 
+import dev.barahow.core.dto.LockInfo;
 import dev.barahow.core.types.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -60,7 +61,18 @@ public class UserEntity {
         private boolean enabled;
 
         @Column(nullable = false)
-        private boolean locked;
+        private LockInfo locked;
+
+        private int failedLoginAttempts = 0;  // Tracks failed login attempts
+
+
+        public void incrementFailedLoginAttempts() {
+                this.failedLoginAttempts++;
+        }
+
+        public void resetFailedLoginAttempts() {
+                this.failedLoginAttempts = 0;
+        }
 
 
 }
