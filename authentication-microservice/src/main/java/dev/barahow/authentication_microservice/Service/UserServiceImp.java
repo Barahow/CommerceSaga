@@ -15,7 +15,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -72,8 +75,9 @@ public class UserServiceImp implements UserService {
         }
 
 
-
-        userEntity.setRole(Role.CUSTOMER);
+             Set<Role> roles= new HashSet<>();
+        roles.add(Role.CUSTOMER);
+        userEntity.setRole(roles);
 
 
         userRepository.save(userEntity);
@@ -94,11 +98,9 @@ public class UserServiceImp implements UserService {
         }
 
 
-
-
-
-
-            user.setRole(Role.CUSTOMER);
+        Set<Role> setRole = new HashSet<>();
+        setRole.add(Role.CUSTOMER);
+            user.setRole(setRole);
         LockInfo lockInfo= new LockInfo(false,null);
             user.setLocked(lockInfo);
 
@@ -140,6 +142,34 @@ log.info("Created a new user {}",userEntity);
         Page<UserDTO> userDTOs = userEntities.map(userMapper::toDTO);
 
         return userDTOs;
+    }
+
+    @Override
+    public void updateUser(UUID id, UserDTO userDTO) {
+
+    }
+
+
+    @Override
+    public UserDTO getUserById(UUID id) {
+        Optional<UserEntity> userEntity= userRepository.findById(id);
+        if (userEntity.isEmpty()){
+            throw new UserNotFoundException("User not found with that id");
+        }
+
+        return userMapper.toDTO(userEntity.get());
+
+    }
+
+    @Override
+    public void deleteUser(UUID id) {
+        Optional<UserEntity> delete= userRepository.findById(id);
+
+        if (delete.isEmpty()){
+            throw new UserNotFoundException("user to delete does not exist");
+        }
+
+        userRepository.delete(delete.get());
     }
 
 

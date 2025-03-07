@@ -5,6 +5,8 @@ import dev.barahow.core.dto.UserDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 public interface UserService {
 
     UserDTO saveUser(UserDTO user);
@@ -14,4 +16,10 @@ public interface UserService {
     UserDTO createUser(UserDTO user);
     UserDTO getUser(String email);
     Page<UserDTO> getUsers(Pageable pageable);
+
+    void updateUser(UUID id, UserDTO userDTO);
+
+    UserDTO getUserById(UUID id);
+
+    void deleteUser(UUID id);
 }

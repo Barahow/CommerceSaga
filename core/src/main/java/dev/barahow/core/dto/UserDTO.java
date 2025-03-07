@@ -4,6 +4,7 @@ import dev.barahow.core.types.Role;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -31,7 +32,7 @@ public class UserDTO {
     private LocalDateTime updatedAt;
 
 
-    private Role role;
+    private Set<Role> role;
 
     private boolean enabled;
 
@@ -42,7 +43,7 @@ public class UserDTO {
     }
 
 
-    public UserDTO(UUID id, String email, String passwordHash, String firstName, String lastName, String address, LocalDateTime createdAt, LocalDateTime updatedAt, Role role, boolean enabled, LockInfo locked) {
+    public UserDTO(UUID id, String email, String passwordHash, String firstName, String lastName, String address, LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> role, boolean enabled, LockInfo locked) {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -120,11 +121,11 @@ public class UserDTO {
         this.updatedAt = updatedAt;
     }
 
-    public Role getRole() {
+    public Set<Role> getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(Set<Role> role) {
         this.role = role;
     }
 
@@ -154,7 +155,7 @@ public class UserDTO {
         private String address;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
-        private Role role;
+        private Set<Role> role;
         private boolean enabled;
         private LockInfo locked;
 
@@ -198,7 +199,7 @@ public class UserDTO {
             return this;
         }
 
-        public Builder role(Role role) {
+        public Builder role(Set<Role> role) {
             this.role = role;
             return this;
         }

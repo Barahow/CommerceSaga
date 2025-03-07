@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Table(name = "users")
@@ -54,14 +55,16 @@ public class UserEntity {
 
         @Enumerated(EnumType.STRING)
         @Column(nullable = false)
-        private Role role;
+        private Set<Role> role;
 
         // To handle account activation or deactivation
         @Column(nullable = false)
         private boolean enabled;
 
-        @Column(nullable = false)
+        @Embedded
         private LockInfo locked;
+
+
 
         private int failedLoginAttempts = 0;  // Tracks failed login attempts
 
