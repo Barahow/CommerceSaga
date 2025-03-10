@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import dev.barahow.authentication_microservice.component.JwtTokenProvider;
 import dev.barahow.authentication_microservice.dao.UserEntity;
 import dev.barahow.authentication_microservice.mapper.UserMapper;
 import dev.barahow.authentication_microservice.repository.UserRepository;
@@ -12,6 +13,11 @@ import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.UserNotFoundException;
 import dev.barahow.core.types.Role;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,26 +27,63 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class UserAuthenticationServiceImp implements UserAuthenticationService {
+public class UserAuthenticationServiceImp implements UserAuthenticationService, UserDetailsService {
 
 
     public final UserRepository userRepository;
     public final UserMapper userMapper;
+    private final JwtTokenProvider jwtTokenProvider;
     public final long MAX_FAILED_ATTEMPTS = 5;
 
     public final PasswordEncoder passwordEncoder;
 
     private final long LOCK_TIMEOUT = 10; // 10min
 
-    public UserAuthenticationServiceImp(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public UserAuthenticationServiceImp(UserRepository userRepository, UserMapper userMapper, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        UserEntity userEntity= userRepository.findByEmailIgnoreCase(email);
+        if (userEntity==null){
+            throw new UsernameNotFoundException("user not found with that email");
+        }
+
+
+        // conver userEntity toa  userDetails instance
+        return new org.springframework.security.core.userdetails.User(
+                userEntity.getEmail(),
+                userEntity.getPasswordHash(),
+                userEntity.isEnabled(),
+                true,//acount non expired
+                true,//credentialsnonExpired
+                !userEntity.getLocked().isLocked(),//accountnonLocked
+                userEntity.getRole().stream()
+                        .map(role -> new SimpleGrantedAuthority("Role_" + role.name()))
+                        .collect(Collectors.toSet())
+
+        );
+
+
+
+    }
+    @Override
+    public String login(String email, String password) {
+        UserEntity userEntity = userRepository.findByEmailIgnoreCase(email);
+        if (userEntity==null || !passwordEncoder.matches(userEntity.getPasswordHash(),password)){
+            throw new BadCredentialsException("Invalid email or Password");
+        }
+
+        return jwtTokenProvider.generateToken(userEntity);
+    }
     @Override
     public String getLoggedInUser(String authorizationToken) {
         // u can set your own environment variable
@@ -173,6 +216,8 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService {
 
     }
 
+
+
     @Override
     public Set<Role> getUserRoles(String loggedInUserEmail) {
         UserEntity userEntity = userRepository.findByEmailIgnoreCase(loggedInUserEmail);
@@ -185,5 +230,6 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService {
         return userEntity.getRole();
 
     }
+
 
 }

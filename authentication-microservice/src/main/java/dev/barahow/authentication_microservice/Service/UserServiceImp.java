@@ -5,6 +5,7 @@ import dev.barahow.authentication_microservice.mapper.UserMapper;
 import dev.barahow.authentication_microservice.repository.UserRepository;
 import dev.barahow.core.dto.LockInfo;
 import dev.barahow.core.dto.UserDTO;
+import dev.barahow.core.exceptions.UserAlreadyExistsException;
 import dev.barahow.core.exceptions.UserNotFoundException;
 import dev.barahow.core.types.Role;
 import jakarta.persistence.EntityNotFoundException;
@@ -94,7 +95,7 @@ public class UserServiceImp implements UserService {
 
         UserEntity newUser  = userRepository.findByEmailIgnoreCase(user.getEmail());
         if(newUser!= null){
-            throw new IllegalStateException("email already exist");
+            throw new UserAlreadyExistsException("email already exist");
         }
 
 
@@ -103,7 +104,7 @@ public class UserServiceImp implements UserService {
             user.setRole(setRole);
         LockInfo lockInfo= new LockInfo(false,null);
             user.setLocked(lockInfo);
-
+            user.setCreatedAt(LocalDateTime.now());
 
             UserEntity userEntity= userMapper.toEntity(user);
 

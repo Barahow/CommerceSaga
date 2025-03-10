@@ -29,13 +29,13 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
 
 
-        if(request.getAuthType().equals("/api/v1/login") || request.getServerName().equals("/api/v1/token/refresh") ) {
-            filterChain.doFilter(request,response);
-        }else{
+        if (request.getAuthType().equals("/api/v1/login") || request.getServerName().equals("/api/v1/token/refresh")) {
+            filterChain.doFilter(request, response);
+        } else {
 
             String authHeader = request.getHeader("AUTHORIZATION");
-            log.info("Authorization head {}",authHeader);
-            if (authHeader!=null&& authHeader.startsWith("Bearer ")) {
+            log.info("Authorization head {}", authHeader);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
                 try {
                     String token = authHeader.substring(7);
@@ -43,14 +43,14 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                     Set<Role> userRole = userAuthenticationService.getUserRoles(loggedInUser);
 
                     // contue to filter chain
-                    filterChain.doFilter(request,response);
+                    filterChain.doFilter(request, response);
 
-                }catch (Exception e){
-                    log.error("Authentication error: {}",e.getMessage());
+                } catch (Exception e) {
+                    log.error("Authentication error: {}", e.getMessage());
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
+                    return;
                 }
-            }else {
+            } else {
 
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
@@ -61,9 +61,6 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
 
     }
-
-    private boolean isAuthorized(Set<Role> userRole, String requestPath) {
-
-        if (requestPath.startsWith())
-    }
 }
+
+

@@ -15,6 +15,6 @@ public interface UserAuthenticationService {
     void incrementFailedLoginAttempt(String email, String password);
 
     void resetUserLock(String email);
-
+    String login(String email, String password);
     Set<Role> getUserRoles(String loggedInUser);
 }
