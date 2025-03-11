@@ -13,7 +13,6 @@ import java.security.Permission;
 public class CustomPermissionEvaluator implements PermissionEvaluator {
 
 
-
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
 
@@ -34,8 +33,8 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
                     .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
 
 
-    }
-return false;
+        }
+        return false;
     }
 
 
@@ -44,3 +43,4 @@ return false;
         return false;
     }
 }
+

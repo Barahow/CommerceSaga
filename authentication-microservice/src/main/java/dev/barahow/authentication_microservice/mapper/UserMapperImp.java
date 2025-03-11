@@ -2,7 +2,6 @@ package dev.barahow.authentication_microservice.mapper;
 
 import dev.barahow.authentication_microservice.dao.UserEntity;
 import dev.barahow.core.dto.UserDTO;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,7 +15,7 @@ public class UserMapperImp  implements UserMapper {
         return new UserDTO.Builder()
                 .id(userEntity.getId())
                 .email(userEntity.getEmail())
-                .passwordHash(userEntity.getPasswordHash())
+                .passwordHash(userEntity.getPassword())
                 .firstName(userEntity.getFirstName())
                 .lastName(userEntity.getLastName())
                 .address(userEntity.getAddress())
@@ -37,7 +36,7 @@ public class UserMapperImp  implements UserMapper {
         return UserEntity.builder()
                 .id(userDTO.getId())
                 .email(userDTO.getEmail())
-                .passwordHash(userDTO.getPasswordHash())
+                .password(userDTO.getPassword())
                 .firstName(userDTO.getFirstName())
                 .lastName(userDTO.getLastName())
                 .address(userDTO.getAddress())

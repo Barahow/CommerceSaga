@@ -8,11 +8,13 @@ import dev.barahow.authentication_microservice.component.JwtTokenProvider;
 import dev.barahow.authentication_microservice.dao.UserEntity;
 import dev.barahow.authentication_microservice.mapper.UserMapper;
 import dev.barahow.authentication_microservice.repository.UserRepository;
+import dev.barahow.authentication_microservice.security.CustomUserDetails;
 import dev.barahow.core.dto.LockInfo;
 import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.UserNotFoundException;
 import dev.barahow.core.types.Role;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,8 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,16 +38,17 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
     public final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
     public final long MAX_FAILED_ATTEMPTS = 5;
-
+    private final String secretKey;
     public final PasswordEncoder passwordEncoder;
 
     private final long LOCK_TIMEOUT = 10; // 10min
 
-    public UserAuthenticationServiceImp(UserRepository userRepository, UserMapper userMapper, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
+    public UserAuthenticationServiceImp(UserRepository userRepository, UserMapper userMapper, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder, @Value("${MY_APP_SECRET_KEY}") String secretKey) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
+        this.secretKey=secretKey;
     }
 
     @Override
@@ -59,18 +60,8 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
 
 
         // conver userEntity toa  userDetails instance
-        return new org.springframework.security.core.userdetails.User(
-                userEntity.getEmail(),
-                userEntity.getPasswordHash(),
-                userEntity.isEnabled(),
-                true,//acount non expired
-                true,//credentialsnonExpired
-                !userEntity.getLocked().isLocked(),//accountnonLocked
-                userEntity.getRole().stream()
-                        .map(role -> new SimpleGrantedAuthority("Role_" + role.name()))
-                        .collect(Collectors.toSet())
+        return new CustomUserDetails(userEntity.getEmail(),userEntity.getRole());
 
-        );
 
 
 
@@ -78,7 +69,9 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
     @Override
     public String login(String email, String password) {
         UserEntity userEntity = userRepository.findByEmailIgnoreCase(email);
-        if (userEntity==null || !passwordEncoder.matches(userEntity.getPasswordHash(),password)){
+        log.info("this is the bCrypt password {}",userEntity.getPassword());
+        log.info("this is the normal password {}",password);
+        if (userEntity==null || !passwordEncoder.matches(password,userEntity.getPassword())){
             throw new BadCredentialsException("Invalid email or Password");
         }
 
@@ -88,7 +81,7 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
     public String getLoggedInUser(String authorizationToken) {
         // u can set your own environment variable
         // using setx MY_APP_SECRET_KEY  "add ur key here"
-        String secretKey = System.getenv("MY_APP_SECRET_KEY");
+
 
         if (secretKey == null || secretKey.isEmpty()) {
             throw new IllegalStateException("Secret key is not set in the environment variables");
@@ -175,7 +168,7 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
         // validate the password
         // if it doesnt match what we got
         // in the database
-        if (!passwordEncoder.matches(password, userEntity.getPasswordHash())) {
+        if (!passwordEncoder.matches(password, userEntity.getPassword())) {
             int failedAttempts = userEntity.getFailedLoginAttempts() + 1;
             userEntity.setFailedLoginAttempts(failedAttempts);
 

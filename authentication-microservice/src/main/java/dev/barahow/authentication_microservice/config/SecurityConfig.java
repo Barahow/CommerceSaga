@@ -1,6 +1,7 @@
 package dev.barahow.authentication_microservice.config;
 
 import dev.barahow.authentication_microservice.Service.UserAuthenticationService;
+import dev.barahow.authentication_microservice.component.JwtTokenProvider;
 import dev.barahow.authentication_microservice.filter.CustomAuthenticationFilter;
 import dev.barahow.authentication_microservice.filter.CustomAuthorizationFilter;
 import dev.barahow.core.types.Role;
@@ -29,12 +30,14 @@ public class SecurityConfig {
 
     private  final UserAuthenticationService userAuthenticationService;
     private final AuthenticationConfiguration authenticationConfiguration;
-private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(UserDetailsService userDetailsService, UserAuthenticationService userAuthenticationService, AuthenticationConfiguration authenticationConfiguration, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(UserDetailsService userDetailsService, UserAuthenticationService userAuthenticationService, AuthenticationConfiguration authenticationConfiguration, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.userAuthenticationService = userAuthenticationService;
         this.authenticationConfiguration = authenticationConfiguration;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -49,7 +52,7 @@ private final PasswordEncoder passwordEncoder;
 
     @Bean
     public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
-        return new CustomAuthenticationFilter(authenticationManager(), userAuthenticationService);
+        return new CustomAuthenticationFilter(authenticationManager(), jwtTokenProvider,userAuthenticationService);
     }
 
     @Bean
@@ -58,7 +61,7 @@ private final PasswordEncoder passwordEncoder;
                 .csrf(csrf-> csrf.disable())
                 .sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth-> auth
-                                .requestMatchers("/api/v1/login/**","/api/token/refresh").permitAll()
+                                .requestMatchers("/api/v1/login/**","/api/token/refresh","/api/v1/registration").permitAll()
                                       // allow users to view,update or delete their account our custom logic
 
                                 .requestMatchers(HttpMethod.GET,"/api/v1/user").hasAuthority("ADMIN")

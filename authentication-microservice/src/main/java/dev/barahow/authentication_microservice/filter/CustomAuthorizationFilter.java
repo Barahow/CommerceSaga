@@ -27,14 +27,20 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
+        log.info(requestURI);
 
-
-        if (request.getAuthType().equals("/api/v1/login") || request.getServerName().equals("/api/v1/token/refresh")) {
+        if ("/api/v1/login".equals(requestURI) || "/api/v1/registration".equals(requestURI) || "/api/v1/token/refresh".equals(request.getServerName())) {
             filterChain.doFilter(request, response);
-        } else {
+
+            return;
+
+
+        }
 
             String authHeader = request.getHeader("AUTHORIZATION");
             log.info("Authorization head {}", authHeader);
+
+
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
                 try {
@@ -61,6 +67,5 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
 
     }
-}
 
 

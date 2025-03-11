@@ -1,7 +1,6 @@
 package dev.barahow.core.dto;
 
 import dev.barahow.core.types.Role;
-import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -16,7 +15,7 @@ public class UserDTO {
     private String email;
 
 
-    private String passwordHash;
+    private String password;
 
 
     private String firstName;
@@ -43,10 +42,10 @@ public class UserDTO {
     }
 
 
-    public UserDTO(UUID id, String email, String passwordHash, String firstName, String lastName, String address, LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> role, boolean enabled, LockInfo locked) {
+    public UserDTO(UUID id, String email, String password, String firstName, String lastName, String address, LocalDateTime createdAt, LocalDateTime updatedAt, Set<Role> role, boolean enabled, LockInfo locked) {
         this.id = id;
         this.email = email;
-        this.passwordHash = passwordHash;
+        this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.address = address;
@@ -73,12 +72,12 @@ public class UserDTO {
         this.email = email;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getFirstName() {

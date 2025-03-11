@@ -43,7 +43,7 @@ public class UserServiceImp implements UserService {
 
         log.info("Saving new user {} to the database",userDTO.getEmail());;
 
-        userDTO.setPasswordHash(passwordEncoder.encode(userDTO.getPasswordHash()));
+        userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         LockInfo lockInfo = new LockInfo(false,null);
         userDTO.setLocked(lockInfo);
@@ -91,7 +91,7 @@ public class UserServiceImp implements UserService {
     @Override
     public UserDTO createUser(UserDTO user) {
 
-        hashPassword(user);
+
 
         UserEntity newUser  = userRepository.findByEmailIgnoreCase(user.getEmail());
         if(newUser!= null){
@@ -105,8 +105,16 @@ public class UserServiceImp implements UserService {
         LockInfo lockInfo= new LockInfo(false,null);
             user.setLocked(lockInfo);
             user.setCreatedAt(LocalDateTime.now());
+            user.setUpdatedAt(null);
+        user.setEnabled(true);  // Make sure the user is enabled
 
-            UserEntity userEntity= userMapper.toEntity(user);
+
+
+        UserEntity userEntity = userMapper.toEntity(user);
+        userEntity.setPassword(passwordEncoder.encode(user.getPassword())); // Ensure password is hashed
+
+
+
 
 
 
@@ -175,7 +183,7 @@ log.info("Created a new user {}",userEntity);
 
 
     private void hashPassword(UserDTO user) {
-        user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
     }
 }

@@ -33,8 +33,8 @@ public class UserEntity {
         private String email;
 
         @NotBlank(message = "Password is mandatory")
-        @Column(name = "password_hash", nullable = false)
-        private String passwordHash;
+        @Column(name = "password", nullable = false)
+        private String password;
 
         @Column(nullable = false, name = "first_name")
         private String firstName;
