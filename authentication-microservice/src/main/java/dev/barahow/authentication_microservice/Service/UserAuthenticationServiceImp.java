@@ -23,6 +23,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -69,11 +70,38 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
     @Override
     public String login(String email, String password) {
         UserEntity userEntity = userRepository.findByEmailIgnoreCase(email);
-        log.info("this is the bCrypt password {}",userEntity.getPassword());
-        log.info("this is the normal password {}",password);
-        if (userEntity==null || !passwordEncoder.matches(password,userEntity.getPassword())){
+
+        if (userEntity==null){
+            incrementFailedLoginAttempt(email, password);
+            throw new UserNotFoundException("Invalid email or password");
+        }
+
+
+        //check if a user is locked before verifying password
+        if(userEntity.getLocked().isLocked()) {
+            LocalDateTime lockTIme = userEntity.getLocked().getLockTime();
+            long minutesSinceLock = ChronoUnit.MINUTES.between(lockTIme,LocalDateTime.now());
+
+            if(minutesSinceLock<LOCK_TIMEOUT) {
+                throw new IllegalArgumentException("User is locked. Please try again later");
+            }else{
+                //unlock user if lock timeout has passed
+                userEntity.getLocked().setLocked(false);
+                userEntity.getLocked().setLockTime(null);
+                userEntity.setFailedLoginAttempts(0);
+                userRepository.save(userEntity);
+            }
+        }
+
+        if (!passwordEncoder.matches(password,userEntity.getPassword())){
+            incrementFailedLoginAttempt(email, password);
             throw new BadCredentialsException("Invalid email or Password");
         }
+
+
+        //Reset failed login attempts on successful login
+        userEntity.setFailedLoginAttempts(0);
+        userRepository.save(userEntity);
 
         return jwtTokenProvider.generateToken(userEntity);
     }
@@ -167,8 +195,7 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
 
         // validate the password
         // if it doesnt match what we got
-        // in the database
-        if (!passwordEncoder.matches(password, userEntity.getPassword())) {
+
             int failedAttempts = userEntity.getFailedLoginAttempts() + 1;
             userEntity.setFailedLoginAttempts(failedAttempts);
 
@@ -179,15 +206,11 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
                 throw new IllegalArgumentException("User has exceeded max login attempts. Account is now locked.");
             }
 
+        // Save the updated user state
+        userRepository.save(userEntity);
 
-            // save the updated user state
-            userRepository.save(userEntity);
 
-        } else {
-            // reset failed login attempts to 0 if the password is correct
-            userEntity.setFailedLoginAttempts(0);
-            userRepository.save(userEntity);
-        }
+
 
 
     }

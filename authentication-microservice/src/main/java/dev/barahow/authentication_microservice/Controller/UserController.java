@@ -49,8 +49,7 @@ private final UserMapper userMapper;
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO){
         try {
 
-log.info("email {}",loginRequestDTO.getEmail());
-log.info("password {}",loginRequestDTO.getPassword());
+
           String token=  userAuthenticationService.login(loginRequestDTO.getEmail(),loginRequestDTO.getPassword());
 
             // generate token in repsonse
