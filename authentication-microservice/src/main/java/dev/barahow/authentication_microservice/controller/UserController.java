@@ -1,11 +1,7 @@
-package dev.barahow.authentication_microservice.Controller;
+package dev.barahow.authentication_microservice.controller;
 
 import dev.barahow.authentication_microservice.Service.UserAuthenticationService;
 import dev.barahow.authentication_microservice.Service.UserService;
-import dev.barahow.authentication_microservice.component.JwtTokenProvider;
-import dev.barahow.authentication_microservice.dao.UserEntity;
-import dev.barahow.authentication_microservice.mapper.UserMapper;
-import dev.barahow.authentication_microservice.security.CustomUserDetails;
 import dev.barahow.core.dto.LoginRequestDTO;
 import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.UserAlreadyExistsException;
@@ -14,15 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -33,16 +23,14 @@ public class UserController {
 
    private final UserService userService;
    private final UserAuthenticationService userAuthenticationService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
-private final UserMapper userMapper;
 
-    public UserController(UserService userService, UserAuthenticationService userAuthenticationService, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserMapper userMapper) {
+
+
+
+    public UserController(UserService userService, UserAuthenticationService userAuthenticationService) {
         this.userService = userService;
         this.userAuthenticationService = userAuthenticationService;
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userMapper = userMapper;
+
     }
 
     @PostMapping("/login")
@@ -86,7 +74,7 @@ private final UserMapper userMapper;
     }
 
 
-        @PreAuthorize("hasPermission(#userDTO, 'VIEW')")
+    @PreAuthorize("hasPermission(#id, 'UserDTO', 'VIEW')")
     @GetMapping("/user/{id}")
     public ResponseEntity<UserDTO> getUser(@PathVariable("id") UUID id) {
         // Retrieve user by id or email and return it
@@ -94,20 +82,9 @@ private final UserMapper userMapper;
         return ResponseEntity.ok(userDTO);
     }
 
-    @PostMapping("/user")
-    public ResponseEntity<UserDTO> createUser(@RequestBody @Valid UserDTO userDTO){
-        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/user").toUriString());
-
-        UserDTO createdDTo = userService.createUser(userDTO);
-        log.info("User created {}",createdDTo.toString());
 
 
-
-        return ResponseEntity.created(uri).body(createdDTo);
-
-    }
-
-    @PreAuthorize("hasPermission(#userDTO, 'UPDATE')")
+    @PreAuthorize("hasPermission(#id, 'UserDTO', UPDATE')")
     @PutMapping("user/{id}")
     public ResponseEntity<?> updateUser(@PathVariable("id") UUID id, @RequestBody UserDTO userDTO) {
         // Update user logic

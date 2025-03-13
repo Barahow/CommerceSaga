@@ -8,6 +8,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -29,6 +31,8 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
         log.info(requestURI);
 
+
+
         if ("/api/v1/login".equals(requestURI) || "/api/v1/registration".equals(requestURI) || "/api/v1/token/refresh".equals(request.getServerName())) {
             filterChain.doFilter(request, response);
 
@@ -36,6 +40,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
 
         }
+
 
             String authHeader = request.getHeader("AUTHORIZATION");
             log.info("Authorization head {}", authHeader);
