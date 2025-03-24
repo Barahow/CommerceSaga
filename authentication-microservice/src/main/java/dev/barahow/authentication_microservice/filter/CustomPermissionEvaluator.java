@@ -68,7 +68,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
      log.info("Permission check result:{}",userDTO.getEmail().equals(loggedInUserEmail));
-     return userDTO.getEmail().equals(loggedInUserEmail)|| !isAdmin;
+     return userDTO.getEmail().equals(loggedInUserEmail)|| isAdmin;
 
     }
 }

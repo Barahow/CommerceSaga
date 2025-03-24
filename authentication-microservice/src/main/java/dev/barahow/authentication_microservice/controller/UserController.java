@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
@@ -74,8 +75,10 @@ public class UserController {
     }
 
 
-    @PreAuthorize("hasPermission(#id, 'UserDTO', 'VIEW')")
+
     @GetMapping("/user/{id}")
+    @PreAuthorize("isAuthenticated() && hasPermission(#id, 'UserDTO', 'VIEW')")
+
     public ResponseEntity<UserDTO> getUser(@PathVariable("id") UUID id) {
         // Retrieve user by id or email and return it
         UserDTO userDTO = userService.getUserById(id);

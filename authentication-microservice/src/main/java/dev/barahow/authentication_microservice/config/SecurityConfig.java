@@ -81,51 +81,35 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf-> csrf.disable())
-                .sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth-> auth
-                        // Public endpoints
-                        .requestMatchers("/api/v1/login/**", "/api/token/refresh", "/api/v1/registration").permitAll()
-
-                        // Admin-only endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/v1/user").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/user/**").hasAuthority("ADMIN")
-
-                        // Public registration endpoint
-                        .requestMatchers(HttpMethod.POST, "/api/v1/user/register").permitAll()
-
-
-                        // everything else need to be authenticated for now
-                        .anyRequest() .authenticated())
-
-
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/login", "/api/v1/registration").permitAll()
+                        .anyRequest().authenticated()
+                )
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling
-                                // Handle authentication failures (401 Unauthorized)
                                 .authenticationEntryPoint((request, response, authException) -> {
+                                    // Handles 401 - Unauthenticated access
                                     response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                                    response.getWriter().write("{\"error\": \"Authentication required\"}");
+                                    response.setContentType(String.valueOf(MediaType.APPLICATION_JSON));
+                                    response.getWriter().write("{\"error\":\"Authentication required\"}");
                                 })
-                                // Handle authorization failures (403 Forbidden)
-                                .accessDeniedHandler(new CustomAccessDeniedHandler())
+                                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                    // Handles 403 - Authenticated but unauthorized
+                                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                                    response.setContentType(String.valueOf(MediaType.APPLICATION_JSON));
+                                    response.getWriter().write("{\"error\":\"Insufficient permissions\"}");
+                                })
                 )
-                //add custom authentication provider
-                .authenticationProvider(daoAuthenticationProvider())
-
-                // register the custom authentication filter
-        // it should executre before usernmaePasswordAuthenticationFIlter
-               //custom filters
-
-       // Register your custom authorization filter as needed.
-                .addFilterBefore(customAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new CustomAuthorizationFilter(userAuthenticationService), BasicAuthenticationFilter.class);
 
-
-
         return http.build();
-
     }
+
 
 
     @Bean

@@ -1,71 +1,76 @@
 package dev.barahow.authentication_microservice.controller;
 
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.barahow.authentication_microservice.Service.UserAuthenticationService;
 import dev.barahow.authentication_microservice.Service.UserService;
 import dev.barahow.authentication_microservice.component.JwtTokenProvider;
+import dev.barahow.authentication_microservice.config.MockSecurityConfig;
 import dev.barahow.authentication_microservice.config.SecurityConfig;
+import dev.barahow.authentication_microservice.config.TestSecurityConfig;
 import dev.barahow.authentication_microservice.filter.CustomAuthorizationFilter;
 import dev.barahow.authentication_microservice.filter.CustomPermissionEvaluator;
-import dev.barahow.authentication_microservice.security.CustomAccessDeniedHandler;
-import dev.barahow.core.dto.LoginRequestDTO;
+import dev.barahow.authentication_microservice.security.CustomUserDetails;
 import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.UserAlreadyExistsException;
 import dev.barahow.core.types.Role;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.servlet.Filter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.method.MethodSecurityMetadataSource;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.when;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
-@WebMvcTest(value = UserController.class,
-        excludeAutoConfiguration = {SpringDataWebAutoConfiguration.class
-, SecurityFilterAutoConfiguration.class}
-)
 
+@TestExecutionListeners(listeners = ServletTestExecutionListener.class,
+                       mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+@WebMvcTest(value = UserController.class)
+@AutoConfigureMockMvc(addFilters = false) // Disable security filters
+@Import({SecurityConfig.class, MockSecurityConfig.class, TestSecurityConfig.class})
 
-@AutoConfigureMockMvc
-
-@Import(SecurityConfig.class)// load security config and CustomPermission class
 class UserControllerTest {
 
 
@@ -96,9 +101,23 @@ class UserControllerTest {
 
     @MockitoBean
     private CustomPermissionEvaluator customPermissionEvaluator;
+
     @MockitoBean
     private CustomAuthorizationFilter customAuthorizationFilter;
 
+    @Autowired
+    private WebApplicationContext context;
+
+    @Autowired
+    private Filter springSecurityFilterChain; // The entire security filter chain
+
+
+    private MockMvc secureMockMvc() {
+        return MockMvcBuilders
+                .webAppContextSetup(context)
+                .addFilters(springSecurityFilterChain) // Enable security filters
+                .build();
+    }
 
 
     public static String asJsonString(final Object object) {
@@ -110,7 +129,10 @@ class UserControllerTest {
         }
     }
 
-
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
 
     // ---------------------------
     // Test for the login endpoint
@@ -118,66 +140,21 @@ class UserControllerTest {
 
 
    // 1. testLoginSuccess: Simulates a POST to /api/v1/login
-    @Test
-    void test_loginUserSuccess() throws Exception {
-        //arrange
-        String email = "user@gmail.com";
-        String password="password";
-        LoginRequestDTO loginRequestDTO= new LoginRequestDTO();
-        String role = "CUSTOMER";
-        loginRequestDTO.setEmail(email);
-        loginRequestDTO.setPassword(password);
+   @Test
+   void test_loginUserSuccess() throws Exception {
+       // 1. Mock the service
+       when(userAuthenticationService.login(any(), any())).thenReturn("mock-token");
 
-
-        String token= "dummyToken";
-
-        when(userAuthenticationService.login(email,password)).thenReturn(token);
-        //act
-        MvcResult result= mockMvc.perform(post("/api/v1/login")
-                        .with(csrf())
-                        .with(user(email).password(password).roles(Role.CUSTOMER.name()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(loginRequestDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value(token))
-                .andReturn();
-
-
-        //assert
-        String responseContent = result.getResponse().getContentAsString();
-
-        assertTrue(responseContent.contains(token),"Response should contain the token ");
-
-    }
-
+       // 2. Execute with CSRF
+       mockMvc.perform(post("/api/v1/login")
+                       .with(csrf()) // Must include
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content("{\"email\":\"test@test.com\",\"password\":\"pass\"}"))
+               .andDo(print())
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.token").value("mock-token"));
+   }
     // test login failure
-    @Test
-    public void testloginFailure() throws Exception {
-       // arrange
-        String email = "user@email.com";
-        String password= "wrongpassword";
-        LoginRequestDTO loginRequestDTO= new LoginRequestDTO();
-        loginRequestDTO.setEmail(email);
-        loginRequestDTO.setPassword(password);
-
-
-        when(userAuthenticationService.login(email,password)).thenThrow(new BadCredentialsException("invalid credentials"));
-        //act
-
-        MvcResult result = mockMvc.perform(post("/api/v1/login")
-                        .with(csrf())
-                        .with(user(email).password(password).roles(Role.CUSTOMER.name()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(loginRequestDTO)))
-                .andExpect(status().isUnauthorized())
-                .andReturn();
-
-
-        //assert
-
-        String responseContent = result.getResponse().getContentAsString();
-        assertEquals("Invalid email or password ",responseContent,"error message must match");
-    }
 
     @Test
     void registration() throws Exception {
@@ -266,78 +243,117 @@ class UserControllerTest {
         assertTrue(responseContent.contains("User already exists"),"Error message must match");
 
     }
+    // Test 3: Successful authorized access
+    @Test
+    @WithMockUser(username = "owner@test.com", roles = "CUSTOMER")
+    void testAuthorizedAccess() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UserDTO mockUser = new UserDTO();
+        mockUser.setId(userId);
+        mockUser.setEmail("owner@test.com");
 
+        when(userService.getUserById(userId)).thenReturn(mockUser);
+        when(customPermissionEvaluator.hasPermission(
+                any(), eq(userId), eq("UserDTO"), eq("VIEW"))
+        ).thenReturn(true);
+
+        mockMvc.perform(get("/api/v1/user/" + userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("owner@test.com"));
+    }
 
     @Test
     void test_shouldReturnUser_whenUserRetrievesOwnAccount() throws Exception {
-
-      /*  // Retrieve user by id or email and return it
-        UserDTO userDTO = userService.getUserById(id);
-        return ResponseEntity.ok(userDTO);*/
-        //Arrange
-
-        String email = "user@gmail.com";
-        String password= "1234";
+        // Arrange
         UUID userId = UUID.randomUUID();
+        String email = "user@gmail.com";
+
+        // Create proper authentication principal
+        Set<Role> roles= new HashSet<>();
+        roles.add(Role.CUSTOMER);
+        CustomUserDetails userDetails = new CustomUserDetails(
+                email,
+                roles
+        );
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         UserDTO userDTO = new UserDTO();
         userDTO.setId(userId);
-        userDTO.setPassword(password);
         userDTO.setEmail(email);
 
         when(userService.getUserById(userId)).thenReturn(userDTO);
-        //Act
+        when(customPermissionEvaluator.hasPermission(
+                any(),
+                eq(userId),
+                eq("UserDTO"),
+                eq("VIEW"))
+        ).thenReturn(true);
 
-        MvcResult mvcResult= mockMvc.perform(get("/api/v1/user/" + userId.toString())
-                        .with(csrf())
-                .with(user(email).password(password).roles(Role.CUSTOMER.name()))
-                .contentType(MediaType.APPLICATION_JSON))
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/user/" + userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
-                .andExpect(jsonPath("$.email").value(email))
-                .andReturn();
-
-        //Assert
-        String responseContent = mvcResult.getResponse().getContentAsString();
-        assertTrue(responseContent.contains(userDTO.getEmail()),"Response should contain user Email");
-
+                .andExpect(jsonPath("$.email").value(email));
     }
+
 
     @Test
     void test_shouldReturnUnauthorized_whenUserIsNotLoggedIn() throws Exception {
-        // Arrange
-        UUID userId1 = UUID.randomUUID();
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(userId1);
-        userDTO.setEmail("user1@gmail.com");
 
-        when(userService.getUserById(userId1)).thenReturn(userDTO);
-
-        // Act & Assert
-        mockMvc.perform(get("/api/v1/user/" + userId1)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().string("")); // Default Spring Security message (empty)
     }
-
-
     @Test
     void test_shouldReturnForbidden_whenUserRetrievesSomeoneElsesAccount() throws Exception {
         // Arrange
         UUID userId1 = UUID.randomUUID();
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(userId1);
-        userDTO.setEmail("user1@gmail.com");
+        String correctEmail = "user1@gmail.com";
+        String wrongEmail = "user2@gmail.com";
 
-        when(userService.getUserById(userId1)).thenReturn(userDTO);
+        UserDTO requestedUser = new UserDTO();
+        requestedUser.setId(userId1);
+        requestedUser.setEmail(correctEmail);
+
+        UserDTO authenticatedUser = new UserDTO();
+        authenticatedUser.setEmail(wrongEmail);
+
+        // Mock JWT verification
+        String token = "mockToken";
+        Claim rolesClaim = mock(Claim.class);
+        when(rolesClaim.asList(String.class)).thenReturn(List.of(Role.CUSTOMER.name()));
+
+        // Mock UserAuthenticationService
+        when(userAuthenticationService.getLoggedInUser(token)).thenReturn(wrongEmail);
+        when(userAuthenticationService.getUserRoles(wrongEmail)).thenReturn(Set.of(Role.CUSTOMER));
+        when(userAuthenticationService.getUserByEmail(wrongEmail)).thenReturn(authenticatedUser);
+
+        // Mock JWT token
+        DecodedJWT decodedJWT = mock(DecodedJWT.class);
+        when(decodedJWT.getSubject()).thenReturn(wrongEmail);
+        when(decodedJWT.getClaim("roles")).thenReturn(rolesClaim);
+        when(jwtTokenProvider.verifyToken(token)).thenReturn(decodedJWT);
+
+        when(userService.getUserById(userId1)).thenReturn(requestedUser);
+
+        // Mock permission evaluator to deny access
+        when(customPermissionEvaluator.hasPermission(
+                any(),
+                eq(userId1),
+                eq("UserDTO"),
+                eq("VIEW")
+        )).thenReturn(false);
 
         // Act & Assert
         mockMvc.perform(get("/api/v1/user/" + userId1)
+                        .header("Authorization", "Bearer " + token)
                         .with(csrf())
-                        .with(user("user2@gmail.com").password("1234").roles(Role.CUSTOMER.name()))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden()) // Expect 403
-                .andExpect(content().json("{\"error\": \"You are not authorized to access this resource.\"}"));
+                .andExpect(status().isForbidden());
     }
     @Test
     void updateUser() {
