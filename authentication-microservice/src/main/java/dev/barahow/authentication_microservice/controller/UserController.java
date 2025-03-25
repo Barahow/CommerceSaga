@@ -77,7 +77,7 @@ public class UserController {
 
 
     @GetMapping("/user/{id}")
-    @PreAuthorize("isAuthenticated() && hasPermission(#id, 'UserDTO', 'VIEW')")
+    @PreAuthorize("hasPermission(#id, 'UserDTO', 'VIEW')")
 
     public ResponseEntity<UserDTO> getUser(@PathVariable("id") UUID id) {
         // Retrieve user by id or email and return it
