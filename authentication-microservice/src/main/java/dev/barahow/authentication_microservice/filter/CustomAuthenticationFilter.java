@@ -12,6 +12,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.FilterChainProxy;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -35,12 +38,17 @@ import java.util.stream.Collectors;
 
 public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
-    private final AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
+
     private final JwtTokenProvider jwtTokenProvider;
 
-    public CustomAuthenticationFilter(AuthenticationManager authenticationManager,
+    public CustomAuthenticationFilter(
                                    JwtTokenProvider jwtTokenProvider) {
-        this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -70,7 +78,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
             // Generate token
             String token = jwtTokenProvider.generateToken(
-                    (UserEntity) authentication.getPrincipal());
+                    (UserDetails) authentication.getPrincipal());
 
             logger.info("token "+token);
 
@@ -84,6 +92,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         } catch (AuthenticationException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("{\"error\":\"Invalid credentials\"}");
+
         }
     }
 

@@ -5,10 +5,13 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import dev.barahow.authentication_microservice.dao.UserEntity;
+import dev.barahow.authentication_microservice.security.CustomUserDetails;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.log4j.Log4j2;
 import org.apache.catalina.Role;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -25,14 +28,14 @@ public class JwtTokenProvider {
         this.secretKey = secretKey;
     }
 
-    public String generateToken(UserEntity userEntity){
+    public String generateToken(UserDetails userDetails){
         log.info("secret key {}", secretKey);
         Algorithm algorithm= Algorithm.HMAC256(secretKey.getBytes());
-
-        return JWT.create().withSubject(userEntity.getEmail())
-                .withClaim("id",userEntity.getId().toString())
-                .withClaim("roles",userEntity.getRole().stream().
-                        map(Enum::name).collect(Collectors.toList()))
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        return JWT.create().withSubject(customUserDetails.getUsername())
+                .withClaim("id",customUserDetails.getId().toString())
+                .withClaim("roles",customUserDetails.getAuthorities().stream().
+                        map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() +1000*60*60 ))// 1 hour expiration date
 

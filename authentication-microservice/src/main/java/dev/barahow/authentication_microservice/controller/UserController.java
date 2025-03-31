@@ -2,6 +2,7 @@ package dev.barahow.authentication_microservice.controller;
 
 import dev.barahow.authentication_microservice.Service.UserAuthenticationService;
 import dev.barahow.authentication_microservice.Service.UserService;
+import dev.barahow.authentication_microservice.config.PasswordEncoderConfig;
 import dev.barahow.core.dto.LoginRequestDTO;
 import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.UserAlreadyExistsException;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -44,12 +46,16 @@ public class UserController {
             // generate token in repsonse
             // Convert Entity to DTO before returning
 
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            boolean isMatch = encoder.matches("1234", "$2a$10$VbgjdzT2Hwh6oJoBkDgbD.TuLC9U0.PZo/2bpMETWyRXX5W9wwSfK");
 
-
+            log.info("matches{}", isMatch);
             return ResponseEntity.ok(Collections.singletonMap("token",token));
 
         }catch (BadCredentialsException exception){
             log.error(exception.getMessage());
+            log.error("Password " + loginRequestDTO.getPassword());
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password ");
         }
 

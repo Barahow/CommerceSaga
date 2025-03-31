@@ -15,24 +15,21 @@ import dev.barahow.core.exceptions.UserNotFoundException;
 import dev.barahow.core.types.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class UserAuthenticationServiceImp implements UserAuthenticationService, UserDetailsService {
+public class UserAuthenticationServiceImp implements UserAuthenticationService{
 
 
     public final UserRepository userRepository;
@@ -42,6 +39,7 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
     private final String secretKey;
     public final PasswordEncoder passwordEncoder;
 
+
     private final long LOCK_TIMEOUT = 10; // 10min
 
     public UserAuthenticationServiceImp(UserRepository userRepository, UserMapper userMapper, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder, @Value("${MY_APP_SECRET_KEY}") String secretKey) {
@@ -50,32 +48,41 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
         this.secretKey=secretKey;
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserEntity userEntity= userRepository.findByEmailIgnoreCase(email);
-        if (userEntity==null){
-            throw new UsernameNotFoundException("user not found with that email");
-        }
-
-
-        // conver userEntity toa  userDetails instance
-        return new CustomUserDetails(userEntity.getEmail(),userEntity.getRole());
-
-
-
 
     }
+
+
     @Override
     public String login(String email, String password) {
-        UserEntity userEntity = userRepository.findByEmailIgnoreCase(email);
 
-        if (userEntity==null){
-            incrementFailedLoginAttempt(email, password);
-            throw new UserNotFoundException("Invalid email or password");
+        try {
+
+            UserEntity userEntity = userRepository.findByEmailIgnoreCase(email);
+            if (userEntity == null) {
+
+                throw new UserNotFoundException("Invalid email or password");
+            }
+
+            handleAccountLockStatus(userEntity);
+
+
+            //Reset failed login attempts on successful login
+            userEntity.setFailedLoginAttempts(0);
+            userRepository.save(userEntity);
+
+            return jwtTokenProvider.generateToken(new CustomUserDetails(
+                    userEntity.getEmail(),
+                    userEntity.getPassword(),
+                    userEntity.getId(),
+                    userEntity.getRole()));
+        }catch (BadCredentialsException ex) {
+           incrementFailedLoginAttempt(email);
+            throw new BadCredentialsException("invalid credentials");
         }
+    }
 
+
+    private void handleAccountLockStatus(UserEntity userEntity) {
 
         //check if a user is locked before verifying password
         if(userEntity.getLocked().isLocked()) {
@@ -93,18 +100,10 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
             }
         }
 
-        if (!passwordEncoder.matches(password,userEntity.getPassword())){
-            incrementFailedLoginAttempt(email, password);
-            throw new BadCredentialsException("Invalid email or Password");
-        }
 
 
-        //Reset failed login attempts on successful login
-        userEntity.setFailedLoginAttempts(0);
-        userRepository.save(userEntity);
-
-        return jwtTokenProvider.generateToken(userEntity);
     }
+
     @Override
     public String getLoggedInUser(String authorizationToken) {
         // u can set your own environment variable
@@ -169,7 +168,7 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService, 
     }
 
     @Override
-    public void incrementFailedLoginAttempt(String email, String password) {
+    public void incrementFailedLoginAttempt(String email) {
         UserEntity userEntity = userRepository.findByEmailIgnoreCase(email);
 
         if (userEntity == null) {

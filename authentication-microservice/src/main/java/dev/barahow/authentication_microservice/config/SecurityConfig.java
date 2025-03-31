@@ -37,18 +37,16 @@ import javax.print.attribute.standard.Media;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+
     private final UserDetailsService userDetailsService;
 
-    private final UserAuthenticationService userAuthenticationService;
-    private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final CustomPermissionEvaluator customPermissionEvaluator;
 
-    public SecurityConfig(UserDetailsService userDetailsService, UserAuthenticationService userAuthenticationService, AuthenticationConfiguration authenticationConfiguration, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder, CustomPermissionEvaluator customPermissionEvaluator) {
+    public SecurityConfig(UserDetailsService userDetailsService, JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder, CustomPermissionEvaluator customPermissionEvaluator) {
         this.userDetailsService = userDetailsService;
-        this.userAuthenticationService = userAuthenticationService;
-        this.authenticationConfiguration = authenticationConfiguration;
+
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
         this.customPermissionEvaluator = customPermissionEvaluator;
@@ -73,14 +71,12 @@ public class SecurityConfig {
     }
 
 
-    @Bean
-    public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
-        return new CustomAuthenticationFilter(authenticationManager(), jwtTokenProvider);
-    }
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
+        AuthenticationManager authManager = http.getSharedObject(AuthenticationManager.class);
             http
                     .csrf(csrf -> csrf.disable())
                     .sessionManagement(session -> session
@@ -90,8 +86,8 @@ public class SecurityConfig {
                             .requestMatchers("/api/v1/login", "/api/v1/registration").permitAll()
                             .anyRequest().authenticated()
                     )
-                    .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                  .addFilterBefore(new CustomAuthorizationFilter(userAuthenticationService,jwtTokenProvider), CustomAuthenticationFilter.class); // Add this line
+                    .addFilterBefore(new CustomAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+                  .addFilterBefore(new CustomAuthorizationFilter(jwtTokenProvider), CustomAuthenticationFilter.class); // Add this line
 
         return http.build();
         }
@@ -99,8 +95,8 @@ public class SecurityConfig {
 
 
     @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
 

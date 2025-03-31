@@ -32,11 +32,11 @@ import java.util.stream.Collectors;
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
 
-    private final UserAuthenticationService userAuthenticationService;
+
     private final JwtTokenProvider jwtTokenProvider;
 
-    public CustomAuthorizationFilter(UserAuthenticationService userAuthenticationService, JwtTokenProvider jwtTokenProvider) {
-        this.userAuthenticationService = userAuthenticationService;
+    public CustomAuthorizationFilter( JwtTokenProvider jwtTokenProvider) {
+
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -85,7 +85,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
     private void authenticateRequest(DecodedJWT decodedJWT) {
         String email = decodedJWT.getSubject();
-        UserDTO user = userAuthenticationService.getUserByEmail(email);
+
 
         List<SimpleGrantedAuthority> authorities = decodedJWT.getClaim("roles")
                 .asList(String.class)
@@ -94,7 +94,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 .toList();
 
         Authentication auth = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
+               email,
                 null,
                 authorities
         );

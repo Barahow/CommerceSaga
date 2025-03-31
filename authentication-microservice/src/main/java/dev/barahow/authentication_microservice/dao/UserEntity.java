@@ -33,7 +33,7 @@ public class UserEntity {
         private String email;
 
         @NotBlank(message = "Password is mandatory")
-        @Column(name = "password", nullable = false)
+        @Column(name = "password", nullable = false,length = 60)
         private String password;
 
         @Column(nullable = false, name = "first_name")

@@ -12,7 +12,7 @@ public interface UserAuthenticationService {
 
     UserDTO getUserISLocked(boolean locked);
 
-    void incrementFailedLoginAttempt(String email, String password);
+    void incrementFailedLoginAttempt(String email);
 
     void resetUserLock(String email);
     String login(String email, String password);
