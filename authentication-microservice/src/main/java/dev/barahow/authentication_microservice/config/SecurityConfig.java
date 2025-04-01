@@ -74,9 +74,13 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http,AuthenticationManager authManager) throws Exception {
+        // Register your custom authentication provider
+       // http.authenticationProvider(daoAuthenticationProvider());
 
-        AuthenticationManager authManager = http.getSharedObject(AuthenticationManager.class);
+        CustomAuthenticationFilter custumAuthFilter = new CustomAuthenticationFilter(authManager, jwtTokenProvider);
+
+
             http
                     .csrf(csrf -> csrf.disable())
                     .sessionManagement(session -> session
@@ -86,7 +90,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/v1/login", "/api/v1/registration").permitAll()
                             .anyRequest().authenticated()
                     )
-                    .addFilterBefore(new CustomAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+                    .addFilterBefore(custumAuthFilter, UsernamePasswordAuthenticationFilter.class)
                   .addFilterBefore(new CustomAuthorizationFilter(jwtTokenProvider), CustomAuthenticationFilter.class); // Add this line
 
         return http.build();

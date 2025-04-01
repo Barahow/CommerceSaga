@@ -38,17 +38,12 @@ import java.util.stream.Collectors;
 
 public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
+    private final AuthenticationManager authenticationManager;
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    public CustomAuthenticationFilter(
-                                   JwtTokenProvider jwtTokenProvider) {
+    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+        this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -69,6 +64,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                     .readValue(request.getInputStream(), LoginRequest.class);
 
             // Authenticate
+            // this.authenticationManager is null for some reason
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             credentials.email(),

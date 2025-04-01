@@ -1,49 +1,37 @@
 package dev.barahow.authentication_microservice.controller;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.barahow.authentication_microservice.Service.UserAuthenticationService;
 import dev.barahow.authentication_microservice.Service.UserService;
 import dev.barahow.authentication_microservice.component.JwtTokenProvider;
-import dev.barahow.authentication_microservice.config.PasswordEncoderConfig;
-import dev.barahow.authentication_microservice.config.SecurityConfig;
-import dev.barahow.authentication_microservice.config.TestSecurityConfig;
-import dev.barahow.authentication_microservice.dao.UserEntity;
 import dev.barahow.authentication_microservice.filter.CustomPermissionEvaluator;
 import dev.barahow.authentication_microservice.repository.UserRepository;
-import dev.barahow.authentication_microservice.security.CustomUserDetails;
 import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.UserAlreadyExistsException;
 import dev.barahow.core.types.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -62,13 +50,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j
 
 
-@WebMvcTest(controllers = UserController.class)
-@Import({
-        SecurityConfig.class,
-        TestSecurityConfig.class
 
-})
-@AutoConfigureMockMvc(addFilters = true)
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 
 class UserControllerTest {
 
@@ -118,45 +104,27 @@ class UserControllerTest {
    // 1. testLoginSuccess: Simulates a POST to /api/v1/login
    @Test
    void test_loginUserSuccess() throws Exception {
-       // Arrange
+      // arrange
        final String email = "test@example.com";
        final String password = "validPass123";
        final String expectedToken = "mock-token";
 
-       when(userAuthenticationService.login(email, password))
+       Mockito.when(userAuthenticationService.login(email, password))
                .thenReturn(expectedToken);
 
-       // Act & Assert
+         // assert
        mockMvc.perform(post("/api/v1/login")
                        .contentType(MediaType.APPLICATION_JSON)
-                       .content("{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password)))
+                       .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.token").value(expectedToken));
    }
     // test login failure
 
     @Test
-    void registration() throws Exception {
-
-      /*  @PostMapping("/registration")
-        public ResponseEntity<?> registration(@RequestBody @Valid UserDTO userDTO) {
-            try {
-                UserDTO createdUser = userService.createUser(userDTO);
+    void test_registrationSuccess() throws Exception {
 
 
-                return ResponseEntity.ok(Collections.singletonMap("user", createdUser));
-
-            } catch (UserAlreadyExistsException e) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
-            }catch (Exception ex) {
-                log.error(ex
-                        .getMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User could not be created");
-
-                //unexpected error
-            }*/
-
-        //arrange
 
         String email= "abdul@gmail.com";
         String password="1234";
@@ -170,7 +138,7 @@ class UserControllerTest {
          userDTO.setLastName(lastName);
          userDTO.setAddress(address);
 
-         when(userService.createUser(any(UserDTO.class))).thenReturn(userDTO);
+         Mockito.when(userService.createUser(any(UserDTO.class))).thenReturn(userDTO);
 
          // Act
         MvcResult result = mockMvc.perform(post("/api/v1/registration")
@@ -203,7 +171,7 @@ class UserControllerTest {
         userDTO.setLastName(lastName);
         userDTO.setAddress(address);
 
-        when(userService.createUser(any(UserDTO.class))).thenThrow(new UserAlreadyExistsException("User already exists"));
+        Mockito.when(userService.createUser(any(UserDTO.class))).thenThrow(new UserAlreadyExistsException("User already exists"));
 
         // act
 
@@ -271,102 +239,115 @@ class UserControllerTest {
     }
     @Test
     void test_shouldReturnUser_whenUserRetrievesOwnAccount() throws Exception {
-//        // Arrange
-//        UUID userId = UUID.randomUUID();
-//        String email = "user@gmail.com";
-//
-//        // Create proper authentication principal
-//        Set<Role> roles= new HashSet<>();
-//        roles.add(Role.CUSTOMER);
-//        CustomUserDetails userDetails = new CustomUserDetails(
-//                email,
-//                roles
-//        );
-//
-//        Authentication auth = new UsernamePasswordAuthenticationToken(
-//                userDetails,
-//                null,
-//                userDetails.getAuthorities()
-//        );
-//
-//        SecurityContextHolder.getContext().setAuthentication(auth);
-//
-//        UserDTO userDTO = new UserDTO();
-//        userDTO.setId(userId);
-//        userDTO.setEmail(email);
-//
-//        when(userService.getUserById(userId)).thenReturn(userDTO);
-//        when(customPermissionEvaluator.hasPermission(
-//                any(),
-//                eq(userId),
-//                eq("UserDTO"),
-//                eq("VIEW"))
-//        ).thenReturn(true);
-//
-//        // Act & Assert
-//        mockMvc.perform(get("/api/v1/user/" + userId))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.id").value(userId.toString()))
-//                .andExpect(jsonPath("$.email").value(email));
+        // Arrange
+        UUID userId1 = UUID.randomUUID();
+        String ownerEmail = "owner@test.com";
+
+        UserDTO requestUser = new UserDTO();
+        requestUser.setId(userId1);
+        requestUser.setEmail(ownerEmail);
+
+
+        //generate a vlid JWT Token for the woner
+        String validToken = JWT.create()
+                .withSubject(ownerEmail)
+                .withClaim("roles",List.of("CUSTOMER"))
+                .sign(Algorithm.HMAC256("irrelevant"));
+
+        //act
+        Mockito.when(userService.getUserById(userId1)).thenReturn(requestUser);
+        Mockito.when(customPermissionEvaluator.hasPermission(
+                Mockito.any(Authentication.class),
+                Mockito.eq(userId1),
+                Mockito.eq("UserDTO"),
+                Mockito.eq("VIEW")
+        )).thenReturn(true);
+
+
+        // stub the JWT token verification so the filter can extrct subjecnt and claims
+        DecodedJWT mockDecodedJWT= Mockito.mock(DecodedJWT.class);
+        Mockito.when(mockDecodedJWT.getSubject()).thenReturn(ownerEmail);
+        Claim rolesClaim = Mockito.mock(Claim.class);
+        Mockito.when(rolesClaim.asList(String.class)).thenReturn(List.of("CUSTOMER"));
+
+        Mockito.when(mockDecodedJWT.getClaim("roles")).thenReturn(rolesClaim);
+
+        Mockito.when(jwtTokenProvider.verifyToken(anyString())).thenReturn(mockDecodedJWT);
+
+
+
+        mockMvc.perform(get("/api/v1/user/"+userId1)
+                        .with(csrf())
+                        .header("Authorization","Bearer " + validToken))
+                .andExpect(status().isOk());
     }
 
-
+//--------------------------------
+// Test for unauthorized access when no user is logged in
+//------------------------------------
     @Test
     void test_shouldReturnUnauthorized_whenUserIsNotLoggedIn() throws Exception {
-
+SecurityContextHolder.clearContext();
+mockMvc.perform(get("/api/v1/user/" + UUID.randomUUID())
+        .with(csrf()))
+        .andExpect(status().isUnauthorized());
     }
+
+
     @Test
     void test_shouldReturnForbidden_whenUserRetrievesSomeoneElsesAccount() throws Exception {
-//        // Arrange
-//        UUID userId1 = UUID.randomUUID();
-//        String correctEmail = "user1@gmail.com";
-//        String wrongEmail = "user2@gmail.com";
-//
-//        UserDTO requestedUser = new UserDTO();
-//        requestedUser.setId(userId1);
-//        requestedUser.setEmail(correctEmail);
-//
-//        UserDTO authenticatedUser = new UserDTO();
-//        authenticatedUser.setEmail(wrongEmail);
-//
-//        // Mock JWT verification
-//        String token = "mockToken";
-//        Claim rolesClaim = mock(Claim.class);
-//        when(rolesClaim.asList(String.class)).thenReturn(List.of(Role.CUSTOMER.name()));
-//
-//        // Mock UserAuthenticationService
-//        when(userAuthenticationService.getLoggedInUser(token)).thenReturn(wrongEmail);
-//        when(userAuthenticationService.getUserRoles(wrongEmail)).thenReturn(Set.of(Role.CUSTOMER));
-//        when(userAuthenticationService.getUserByEmail(wrongEmail)).thenReturn(authenticatedUser);
-//
-//        // Mock JWT token
-//        DecodedJWT decodedJWT = mock(DecodedJWT.class);
-//        when(decodedJWT.getSubject()).thenReturn(wrongEmail);
-//        when(decodedJWT.getClaim("roles")).thenReturn(rolesClaim);
-//        when(jwtTokenProvider.verifyToken(token)).thenReturn(decodedJWT);
-//
-//        when(userService.getUserById(userId1)).thenReturn(requestedUser);
-//
-//        // Mock permission evaluator to deny access
-//        when(customPermissionEvaluator.hasPermission(
-//                any(),
-//                eq(userId1),
-//                eq("UserDTO"),
-//                eq("VIEW")
-//        )).thenReturn(false);
-//
-//        // Act & Assert
-//        mockMvc.perform(get("/api/v1/user/" + userId1)
-//                        .header("Authorization", "Bearer " + token)
-//                        .with(csrf())
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isForbidden());
+
+
+        // Arrange
+        UUID userId1 = UUID.randomUUID();
+       String ownerEmail = "owner@test.com";
+       String anotherEmail = "another@test.com";
+       UserDTO requestUser = new UserDTO();
+       requestUser.setId(userId1);
+       requestUser.setEmail(anotherEmail);
+
+
+       //generate a vlid JWT Token for the woner
+        String validToken = JWT.create()
+                .withSubject(ownerEmail)
+                        .withClaim("roles",List.of("CUSTOMER"))
+                                .sign(Algorithm.HMAC256("irrelevant"));
+
+       //act
+        Mockito.when(userService.getUserById(userId1)).thenReturn(requestUser);
+        Mockito.when(customPermissionEvaluator.hasPermission(
+                Mockito.any(Authentication.class),
+                Mockito.eq(userId1),
+                Mockito.eq("UserDTO"),
+                Mockito.eq("VIEW")
+        )).thenReturn(false);
+
+
+        // stub the JWT token verification so the filter can extrct subjecnt and claims
+        DecodedJWT mockDecodedJWT= Mockito.mock(DecodedJWT.class);
+        Mockito.when(mockDecodedJWT.getSubject()).thenReturn(ownerEmail);
+        Claim rolesClaim = Mockito.mock(Claim.class);
+        Mockito.when(rolesClaim.asList(String.class)).thenReturn(List.of("CUSTOMER"));
+
+        Mockito.when(mockDecodedJWT.getClaim("roles")).thenReturn(rolesClaim);
+
+        Mockito.when(jwtTokenProvider.verifyToken(anyString())).thenReturn(mockDecodedJWT);
+
+
+
+        mockMvc.perform(get("/api/v1/user/"+userId1)
+                .with(csrf())
+                        .header("Authorization","Bearer " + validToken))
+                .andExpect(status().isForbidden());
+
     }
     @Test
     void updateUser() {
+        // TODO: Implement test for update user functionality
     }
 
     @Test
     void deleteUser() {
+        // TODO: Implement test for delete user functionality
     }
 }
