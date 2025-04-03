@@ -87,7 +87,7 @@ public class SecurityConfig {
                             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     )
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/api/v1/login", "/api/v1/registration").permitAll()
+                            .requestMatchers("/api/v1/login", "/api/v1/registration","/actuator/prometheus","/actuator/health","/actuator/info").permitAll()
                             .anyRequest().authenticated()
                     )
                     .addFilterBefore(custumAuthFilter, UsernamePasswordAuthenticationFilter.class)

@@ -44,7 +44,11 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
         log.info(requestURI);
-
+        // Skip authorization check for /actuator/prometheus endpoint
+        if ("/actuator/prometheus".equals(requestURI)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if ("/api/v1/login".equals(requestURI) || "/api/v1/registration".equals(requestURI) || "/api/v1/token/refresh".equals(requestURI)) {
             filterChain.doFilter(request, response);
