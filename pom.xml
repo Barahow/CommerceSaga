@@ -23,6 +23,7 @@
 
         <module>authentication-microservice</module>
         <module>core</module>
+        <module>order-microservice</module>
 
 
 

@@ -1,17 +1,18 @@
-package dev.barahow.core.dto;
+package dev.barahow.authentication_microservice.dao;
 
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
 
 import java.time.LocalDateTime;
 
-public class LockInfo {
+@Embeddable
+public class LockInfoEntity {
+
     private boolean locked;
     private LocalDateTime lockTime;
 
-    public LockInfo() {}
+    public LockInfoEntity() {}
 
-    public LockInfo(boolean locked, LocalDateTime lockTime) {
+    public LockInfoEntity(boolean locked, LocalDateTime lockTime) {
         this.locked = locked;
         this.lockTime = lockTime;
     }

@@ -50,7 +50,7 @@ public class UserEntity {
         private LocalDateTime createdAt;
 
         @UpdateTimestamp
-        @Column(nullable = false)
+
         private LocalDateTime updatedAt;
 
         @Enumerated(EnumType.STRING)
@@ -62,7 +62,7 @@ public class UserEntity {
         private boolean enabled;
 
         @Embedded
-        private LockInfo locked;
+        private LockInfoEntity locked;
 
 
 

@@ -17,6 +17,8 @@
 
 
 	<dependencies>
+
+
 		<!-- Lombok to reduce boilerplate code (Getters, Setters, etc.) -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

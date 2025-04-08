@@ -2,8 +2,10 @@ dev\barahow\core\dto\LockInfo.class
 dev\barahow\core\exceptions\RoleNotFoundException.class
 dev\barahow\core\dto\Product.class
 dev\barahow\core\dto\LoginRequestDTO.class
+dev\barahow\core\dto\Order$Builder.class
 dev\barahow\core\dto\UserDTO.class
 dev\barahow\core\dto\Order.class
+dev\barahow\core\dto\OrderItem.class
 dev\barahow\core\dto\Shipment.class
 dev\barahow\core\dto\Payment.class
 dev\barahow\core\types\Role.class
