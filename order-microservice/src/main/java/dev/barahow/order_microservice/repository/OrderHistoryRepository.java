@@ -1,4 +1,12 @@
 package dev.barahow.order_microservice.repository;
 
-public interface OrderHistoryRepository {
+import dev.barahow.order_microservice.dao.OrderHistoryEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+@Repository
+public interface OrderHistoryRepository extends JpaRepository<OrderHistoryEntity, UUID> {
+    List<OrderHistoryEntity> findByOrderIdOrderByCreatedAtDesc(UUID orderId);
 }

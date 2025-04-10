@@ -18,4 +18,5 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     List<UserEntity> findByLocked(boolean locked);
 
+
 }

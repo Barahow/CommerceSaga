@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import dev.barahow.authentication_microservice.component.JwtTokenProvider;
+import dev.barahow.authentication_microservice.dao.LockInfoEntity;
 import dev.barahow.authentication_microservice.dao.UserEntity;
 import dev.barahow.authentication_microservice.mapper.UserMapper;
 import dev.barahow.authentication_microservice.repository.UserRepository;
@@ -223,8 +224,8 @@ public class UserAuthenticationServiceImp implements UserAuthenticationService{
         }
 
         // set the user locked back to false
-        LockInfo lockInfo = new LockInfo(false, null);
-        userEntity.setLocked(lockInfo);
+        LockInfoEntity lockInfoEntity = new LockInfoEntity(false, null);
+        userEntity.setLocked(lockInfoEntity);
 
         // save the new state to database
         userRepository.save(userEntity);

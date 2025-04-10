@@ -30,7 +30,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         }
 
         // check if the user can access their own account
-        if (permission.equals("UPDATE")||permission.equals("DELETE")|| permission.equals("VIEW")) {
+        if (permission.equals("UPDATE")||permission.equals("POST")||permission.equals("DELETE")|| permission.equals("VIEW")) {
             String targetUserEmail = (targetDomainObject instanceof UserDTO)
                     ? ((UserDTO) targetDomainObject).getEmail() : targetDomainObject.toString();
 
