@@ -42,6 +42,11 @@
 			<artifactId>core</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>dev.barahow</groupId>
+			<artifactId>commerce-saga-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 		<!-- Spring Boot Starter for Micrometer (metrics) -->
 
 

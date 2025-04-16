@@ -38,7 +38,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO){
-        try {
+
 
 
           String token=  userAuthenticationService.login(loginRequestDTO.getEmail(),loginRequestDTO.getPassword());
@@ -52,32 +52,22 @@ public class UserController {
             log.info("matches{}", isMatch);
             return ResponseEntity.ok(Collections.singletonMap("token",token));
 
-        }catch (BadCredentialsException exception){
-            log.error(exception.getMessage());
-            log.error("Password " + loginRequestDTO.getPassword());
 
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password ");
-        }
 
     }
 
     @PostMapping("/registration")
     public ResponseEntity<?> registration(@RequestBody @Valid UserDTO userDTO) {
-        try {
+
             UserDTO createdUser = userService.createUser(userDTO);
 
 
             return ResponseEntity.ok(Collections.singletonMap("user", createdUser));
 
-        } catch (UserAlreadyExistsException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
-        }catch (Exception ex) {
-            log.error(ex
-                    .getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User could not be created");
 
-            //unexpected error
-        }
+
+
+
     }
 
 

@@ -72,7 +72,7 @@ public class UserServiceImp implements UserService {
         UserEntity userEntity= userRepository.findByEmailIgnoreCase(email);
 
         if(userEntity== null){
-            throw new EntityNotFoundException("user with email " + email + "not found");
+            throw new UserNotFoundException("user with email " + email + "not found");
         }
 
 

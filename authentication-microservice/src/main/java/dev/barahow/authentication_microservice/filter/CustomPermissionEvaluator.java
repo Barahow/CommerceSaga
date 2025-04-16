@@ -31,14 +31,14 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
 
         // check if the user can access their own account
         if (permission.equals("UPDATE")||permission.equals("POST")||permission.equals("DELETE")|| permission.equals("VIEW")) {
-            String targetUserEmail = (targetDomainObject instanceof UserDTO)
-                    ? ((UserDTO) targetDomainObject).getEmail() : targetDomainObject.toString();
+            String targetUserId = (targetDomainObject instanceof UserDTO)
+                    ? ((UserDTO) targetDomainObject).getId().toString(): targetDomainObject.toString();
 
-            String loggedInUserEmail = authentication.getName();
+            String loggedInUserId = authentication.getName();
 
             // if the user is trying to modify their own data or if they are ADMIN
 
-            return targetUserEmail.equals(loggedInUserEmail) || authentication.getAuthorities().stream()
+            return targetUserId.equals(loggedInUserId) || authentication.getAuthorities().stream()
                     .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN") ||
                     grantedAuthority.getAuthority().equals("ADMIN"));
 
@@ -63,13 +63,14 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         UUID userId = (UUID)  targetId;
 
      UserDTO userDTO= userService.getUserById(userId);
+        log.info("Fetched user id: {}, email: {}", userDTO.getId(), userDTO.getEmail());
 
-     log.info("fetched user email {}",userDTO.getEmail());
-     String loggedInUserEmail = authentication.getName();
+
+     String loggedInUserId = authentication.getName();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-     log.info("Permission check result:{}",userDTO.getEmail().equals(loggedInUserEmail));
-return userDTO.getEmail().equalsIgnoreCase(loggedInUserEmail) || isAdmin;
+     log.info("Permission check result:{}",userDTO.getId().equals(UUID.fromString(loggedInUserId)));
+return userDTO.getId().equals(UUID.fromString(loggedInUserId)) || isAdmin;
 
     }
 }

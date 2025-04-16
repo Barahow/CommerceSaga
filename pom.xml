@@ -20,12 +20,10 @@
 
 
     <modules>
-
         <module>authentication-microservice</module>
+        <module>commerce-saga-api</module>
         <module>core</module>
         <module>order-microservice</module>
-
-
 
     </modules>
 

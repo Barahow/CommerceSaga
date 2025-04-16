@@ -16,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/orders")
 @Log4j2
 public class OrderController {
 
@@ -36,40 +37,33 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @GetMapping("/orders/{customerId}")
-    //@PreAuthorize("hasPermission(#customerId,'UserDTO','VIEW')")
+    @GetMapping("/{customerId}")
+    @PreAuthorize("hasPermission(#customerId,'UserDTO','VIEW'")
     public ResponseEntity<List<Order>> getOrders(@PathVariable UUID customerId) {
 
         List<Order> orders= orderService.findOrderByCustomer(customerId);
 
         return ResponseEntity.ok(orders);
     }
-
-    @PostMapping("/orders")
-   // @PreAuthorize("hasPermission(#customerId,'UserDTO','POST')")
+    @PostMapping
+    @PreAuthorize("hasPermission(T(java.util.UUID).fromString(authentication.name), 'UserDTO', 'POST')")
     public ResponseEntity<?> placeOrder(@RequestBody @Valid CreateOrderRequest createOrderRequest){
         //get the customerId from securityContext
-        String customerId = SecurityContextHolder.getContext().getAuthentication().getName();
+      UUID customerId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order order= new Order();
-        try {
-            // Try parsing the customerId as UUID
-            order.setCustomerId(UUID.fromString(customerId));
-
-        } catch (IllegalArgumentException ex) {
-            // If customerId format is invalid, log and return a BAD_REQUEST response
-            log.error("Invalid UUID format for customerId: {}", customerId);
-            ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(),"Invalid customerId format",ex.getMessage(),"INVALID_CUSTOMER_ID");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
 
         BeanUtils.copyProperties(order,createOrderRequest);
           //pass the order to the service
+        order.setCustomerId(customerId);
+
+
         Order createdOrder = orderService.placeOrder(order);
 
         CreateOrderResponse createOrderResponse= new CreateOrderResponse();
         BeanUtils.copyProperties(createdOrder,createOrderResponse);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(createOrderResponse);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(createOrderResponse);
 
 
     }
