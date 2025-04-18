@@ -95,7 +95,7 @@ public class UserServiceImp implements UserService {
 
         UserEntity newUser  = userRepository.findByEmailIgnoreCase(user.getEmail());
         if(newUser!= null){
-            throw new UserAlreadyExistsException("email already exist");
+            throw new UserAlreadyExistsException("user already exist");
         }
 
 

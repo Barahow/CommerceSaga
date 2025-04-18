@@ -14,6 +14,7 @@ import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.UserAlreadyExistsException;
 import dev.barahow.core.types.Role;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -175,13 +176,17 @@ class UserControllerTest {
 
         // act
 
-        MvcResult mvcResult=mockMvc.perform(post("/api/v1/registration")
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/registration")
                         .with(csrf())
                         .with(user(email).password(password).roles(Role.CUSTOMER.name()))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(userDTO)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(userDTO))) // Pass userDTO as content
+                .andExpect(jsonPath("$.message").value("User already exists"))
+                .andExpect(jsonPath("$.errorCode").value("UserAlreadyExistsException"))
                 .andExpect(status().isConflict())
                 .andReturn();
+
+
 
 
 

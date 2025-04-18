@@ -1,16 +1,27 @@
 package dev.barahow.authentication_microservice.mapper;
 
+import dev.barahow.authentication_microservice.dao.LockInfoEntity;
 import dev.barahow.authentication_microservice.dao.UserEntity;
+import dev.barahow.core.dto.LockInfo;
 import dev.barahow.core.dto.UserDTO;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapperImp  implements UserMapper {
+
+  private final LockInfoMapper lockInfoMapper;
+
+    public UserMapperImp(LockInfoMapper lockInfoMapper) {
+        this.lockInfoMapper = lockInfoMapper;
+    }
+
     @Override
     public UserDTO toDTO(UserEntity userEntity) {
         if (userEntity == null) {
             return null;
         }
+
+        LockInfo lockInfo= lockInfoMapper.toDto(userEntity.getLocked().isLocked(),userEntity.getLocked().getLockTime());
 
         return new UserDTO.Builder()
                 .id(userEntity.getId())
@@ -23,7 +34,7 @@ public class UserMapperImp  implements UserMapper {
                 .updatedAt(userEntity.getUpdatedAt())
                 .role(userEntity.getRole())
                 .enabled(userEntity.isEnabled())
-                .locked(userEntity.getLocked())
+                .locked(lockInfo)
                 .build();
     }
 
@@ -32,6 +43,7 @@ public class UserMapperImp  implements UserMapper {
         if (userDTO == null) {
             return null;
         }
+      LockInfoEntity lock= lockInfoMapper.toEntity(userDTO.isLocked().isLocked(),userDTO.isLocked().getLockTime());
 
         return UserEntity.builder()
                 .id(userDTO.getId())
@@ -44,7 +56,7 @@ public class UserMapperImp  implements UserMapper {
                 .updatedAt(userDTO.getUpdatedAt())
                 .role(userDTO.getRole())
                 .enabled(userDTO.isEnabled())
-                .locked(userDTO.isLocked())
+                .locked(lock)
                 .build();
     }
     }

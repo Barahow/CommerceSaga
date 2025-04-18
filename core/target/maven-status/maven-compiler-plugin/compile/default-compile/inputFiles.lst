@@ -6,6 +6,13 @@ C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\cor
 C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\dto\Product.java
 C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\dto\Shipment.java
 C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\dto\UserDTO.java
+C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\AuthenticationException.java
+C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\error\ErrorResponse.java
+C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\InvalidOrderException.java
+C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\InvalidOrderHistoryException.java
+C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\OrderHistoryNotFound.java
+C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\OrderNotFoundException.java
+C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\OrderProcessingException.java
 C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\RoleNotFoundException.java
 C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\UserAlreadyExistsException.java
 C:\Users\yeahm\Documents\Github1\CommerceSaga\core\src\main\java\dev\barahow\core\exceptions\UserNotFoundException.java

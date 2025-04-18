@@ -3,6 +3,7 @@ package dev.barahow.authentication_microservice.Service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import dev.barahow.authentication_microservice.component.JwtTokenProvider;
+import dev.barahow.authentication_microservice.dao.LockInfoEntity;
 import dev.barahow.authentication_microservice.dao.UserEntity;
 import dev.barahow.authentication_microservice.mapper.UserMapper;
 import dev.barahow.authentication_microservice.repository.UserRepository;
@@ -88,7 +89,7 @@ class UserAuthenticationServiceImpTest {
         roles.add(Role.CUSTOMER);
         userEntity.setRole(roles);
 
-        LockInfo lockInfo = new LockInfo();
+        LockInfoEntity lockInfo = new LockInfoEntity();
         lockInfo.setLockTime(null);
         lockInfo.setLocked(false);
 

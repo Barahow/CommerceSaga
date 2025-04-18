@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
-
-
-
-	<artifactId>commerce-saga-api</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>commerce-saga-api</name>
-	<description>Shared API module for global exception handling and common web configurations</description>
-
 
 	<parent>
 		<groupId>dev.barahow</groupId>
 		<artifactId>commerce-saga</artifactId>
-		<version>${revision}</version>
+		<version>1.0.0</version>
 	</parent>
+
+
+	<artifactId>commerce-saga-api</artifactId>
+	<version>${revision}</version>
+	<name>commerce-saga-api</name>
+	<description>Shared API module for global exception handling and common web configurations</description>
+
+
 
 
 	<url/>
@@ -65,31 +66,16 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
+			<!-- your compiler plugin here… -->
+
+			<!-- Disable Spring Boot’s repackage in this library module -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
+					<skip>true</skip> <!-- Skip repackaging -->
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

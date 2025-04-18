@@ -13,24 +13,33 @@ import java.util.stream.Collectors;
 
 @Component
 public class OrderMapperImp implements OrderMapper {
+
+    private final OrderItemsMapper orderItemsMapper;
+
+    public OrderMapperImp(OrderItemsMapper orderItemsMapper) {
+        this.orderItemsMapper = orderItemsMapper;
+    }
+
     @Override
     public Order toDTO(OrderEntity orderEntity) {
         if (orderEntity == null) {
             return null;
         }
-        // Correctly map List<OrderItemEntity> to List<OrderItemDTO>
-        List<OrderItem> orderItemDTOs = orderEntity.getItems().stream()
-                .map(orderItemEntity -> toDTO(orderItemEntity))  // Explicitly calling toDTO
+        List<OrderItem> orderItem = orderEntity.getItems().stream()
+                .map(item -> orderItemsMapper.toDTO(
+                        item.getProductId(),
+                        item.getProductName(),
+                        item.getQuantity(),
+                        item.getPrice()
+                ))
                 .collect(Collectors.toList());
-
-
 
         return Order.builder().
                 orderId(orderEntity.getId())
                 .customerId(orderEntity.getCustomerId())
                 .status(orderEntity.getStatus())
                 .createdAt(orderEntity.getCreatedAt())
-                .items(orderItemDTOs)
+                .items(orderItem)
                 .paymentId(orderEntity.getPaymentId())
                 .shipmentId(orderEntity.getShipmentId())
 
@@ -39,12 +48,17 @@ public class OrderMapperImp implements OrderMapper {
 
     @Override
     public OrderEntity toEntity(Order orderDTO) {
-        if(orderDTO==null){
+        if (orderDTO == null) {
             return null;
         }
         // Correctly map List<OrderItemEntity> to List<OrderItemDTO>
-        List<OrderItemEntity> orderItemDTOs = orderDTO.getItems().stream()
-                .map(orderItemEntity -> toEntity(orderItemEntity))  // Explicitly calling toDTO
+        List<OrderItemEntity> orderItemEntity = orderDTO.getItems().stream()
+                .map(item -> orderItemsMapper.toEntity(
+                        item.getProductId(),
+                        item.getProductName(),
+                        item.getQuantity(),
+                        item.getPrice()
+                ))
                 .collect(Collectors.toList());
 
 
@@ -55,32 +69,9 @@ public class OrderMapperImp implements OrderMapper {
                 .status(orderDTO.getStatus())
                 .shipmentId(orderDTO.getShipmentId())
                 .updatedAt(orderDTO.getUpdatedAt())
-                .items(orderItemDTOs)
+                .items(orderItemEntity)
                 .build();
     }
 
-    //method to map OrderItemDTO to orderItemEntity
-    private OrderItemEntity toEntity(OrderItem orderItem){
-        if (orderItem==null){
-            return null;
-        }
-
-        return new OrderItemEntity(orderItem.getProductId(),orderItem.getProductName(),orderItem.getQuantity(),orderItem.getPrice());
-    }
-    // Method to map OrderItemEntity to OrderItemDTO
-    private OrderItem toDTO(OrderItemEntity orderItemEntity) {
-        if (orderItemEntity == null) {
-            return null;
-        }
-
-        return new OrderItem(
-                orderItemEntity.getProductId(),
-                orderItemEntity.getProductName(),
-                orderItemEntity.getQuantity(),
-                orderItemEntity.getPrice()
-        );
-    }
-
-    }
-
+}
 

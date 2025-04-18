@@ -1,11 +1,17 @@
 dev\barahow\core\dto\LockInfo.class
+dev\barahow\core\exceptions\InvalidOrderException.class
 dev\barahow\core\exceptions\RoleNotFoundException.class
 dev\barahow\core\dto\Product.class
+dev\barahow\core\exceptions\OrderProcessingException.class
+dev\barahow\core\exceptions\AuthenticationException.class
 dev\barahow\core\dto\LoginRequestDTO.class
 dev\barahow\core\dto\Order$Builder.class
+dev\barahow\core\exceptions\OrderHistoryNotFound.class
 dev\barahow\core\dto\UserDTO.class
 dev\barahow\core\dto\Order.class
 dev\barahow\core\dto\OrderItem.class
+dev\barahow\core\exceptions\InvalidOrderHistoryException.class
+dev\barahow\core\exceptions\OrderNotFoundException.class
 dev\barahow\core\dto\Shipment.class
 dev\barahow\core\dto\Payment.class
 dev\barahow\core\types\Role.class
@@ -13,3 +19,4 @@ dev\barahow\core\exceptions\UserNotFoundException.class
 dev\barahow\core\dto\UserDTO$Builder.class
 dev\barahow\core\exceptions\UserAlreadyExistsException.class
 dev\barahow\core\types\OrderStatus.class
+dev\barahow\core\exceptions\error\ErrorResponse.class

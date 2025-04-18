@@ -1,6 +1,6 @@
 package dev.barahow.order_microservice.dao;
 
-import dev.barahow.core.dto.OrderItem;
+
 import dev.barahow.core.types.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,11 +1,11 @@
-package dev.barahow.commerce_saga_api.exception;
+package dev.barahow.commerce.saga.api.exception;
 
 import dev.barahow.core.exceptions.*;
 import dev.barahow.core.exceptions.error.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -40,10 +40,6 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException.class
     })
     public ResponseEntity<ErrorResponse> handleCommonExceptions(Exception ex, WebRequest request){
-//        private LocalDateTime timeStamp;
-//        private String errorCode;
-//        private String message;
-//        private int status;
 
 
         ErrorResponse error = new ErrorResponse(

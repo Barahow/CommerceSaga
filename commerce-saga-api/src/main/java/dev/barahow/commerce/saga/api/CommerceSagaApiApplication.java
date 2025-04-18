@@ -1,4 +1,4 @@
-package dev.barahow.commerce_saga_api;
+package dev.barahow.commerce.saga.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
