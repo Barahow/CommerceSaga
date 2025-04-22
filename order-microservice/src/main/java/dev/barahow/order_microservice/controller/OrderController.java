@@ -2,9 +2,11 @@ package dev.barahow.order_microservice.controller;
 
 import com.fasterxml.jackson.databind.util.BeanUtil;
 import dev.barahow.core.dto.Order;
+import dev.barahow.core.dto.UserDTO;
 import dev.barahow.core.exceptions.AuthenticationException;
 import dev.barahow.core.exceptions.UserNotFoundException;
 import dev.barahow.core.exceptions.error.ErrorResponse;
+import dev.barahow.order_microservice.component.JwtUtils;
 import dev.barahow.order_microservice.dto.CreateOrderRequest;
 import dev.barahow.order_microservice.dto.CreateOrderResponse;
 import dev.barahow.order_microservice.dto.OrderHistoryResponse;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -31,25 +34,30 @@ import java.util.UUID;
 @Log4j2
 public class OrderController {
 
-    private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
+    private final OrderService orderService;
+    private final JwtUtils jwtUtils;
+
+    public OrderController(OrderService orderService, JwtUtils jwtUtils) {
         this.orderService = orderService;
+        this.jwtUtils = jwtUtils;
     }
 
-    @GetMapping("/{customerId}")
-    @PreAuthorize("hasPermission(#customerId,'UserDTO','VIEW'")
-    public ResponseEntity<List<Order>> getOrders(@PathVariable UUID customerId) {
-
+    @GetMapping
+    @PreAuthorize("hasPermission(@jwtUtils.extractCustomerIdFromJWT(),'UserDTO','VIEW'")
+    public ResponseEntity<List<Order>> getOrders() {
+        UUID customerId= jwtUtils.extractCustomerIdFromJWT();
         List<Order> orders= orderService.findOrderByCustomer(customerId);
 
         return ResponseEntity.ok(orders);
     }
     @PostMapping
-    @PreAuthorize("hasPermission(T(java.util.UUID).fromString(authentication.name), 'UserDTO', 'POST')")
+    @PreAuthorize("hasPermission(@jwtUtils.extractCustomerIdFromJWT(), 'UserDTO', 'POST')")
     public ResponseEntity<?> placeOrder(@RequestBody @Valid CreateOrderRequest createOrderRequest){
-        //get the customerId from securityContext
-      UUID customerId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+
+
+        //get the customerId from JwtUtils
+      UUID customerId = jwtUtils.extractCustomerIdFromJWT();
 
         Order order= new Order();
 

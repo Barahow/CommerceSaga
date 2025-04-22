@@ -11,10 +11,13 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.catalina.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -51,5 +54,6 @@ public class JwtTokenProvider {
 
         return jwtVerifier.verify(token);
     }
+
 
 }

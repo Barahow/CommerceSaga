@@ -75,8 +75,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,AuthenticationManager authManager) throws Exception {
-        // Register your custom authentication provider
-       // http.authenticationProvider(daoAuthenticationProvider());
+
 
         CustomAuthenticationFilter custumAuthFilter = new CustomAuthenticationFilter(authManager, jwtTokenProvider);
 

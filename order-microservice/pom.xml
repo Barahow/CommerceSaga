@@ -93,7 +93,16 @@
 			<artifactId>commerce-saga-api</artifactId>
 			<version>1.0.0</version>
 		</dependency>
-
+		<!-- JJWT for working with JSON Web Tokens (JWT) -->
+		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>4.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
