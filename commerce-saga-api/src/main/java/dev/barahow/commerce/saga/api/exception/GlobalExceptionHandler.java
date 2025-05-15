@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
             return HttpStatus.UNAUTHORIZED; //401
         }
 
-        if(ex instanceof OrderNotFoundException
+        if(ex instanceof  ProductNotFoundException||ex instanceof OrderNotFoundException
                 || ex instanceof UserNotFoundException ||
                 ex instanceof OrderHistoryNotFound ||
                 ex instanceof RoleNotFoundException) {
@@ -83,7 +83,7 @@ public class GlobalExceptionHandler {
         if (ex instanceof HttpMessageNotReadableException || ex instanceof InvalidOrderException || ex instanceof InvalidOrderHistoryException) {
             return HttpStatus.BAD_REQUEST;
         }
-        if(ex instanceof UserAlreadyExistsException){
+        if(ex instanceof UserAlreadyExistsException || ex instanceof InsufficientProductQuantityException){
             return HttpStatus.CONFLICT;//409
         }
 

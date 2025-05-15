@@ -24,6 +24,7 @@
         <module>commerce-saga-api</module>
         <module>authentication-microservice</module>
         <module>order-microservice</module>
+        <module>product-microservice</module>
 
 
     </modules>
